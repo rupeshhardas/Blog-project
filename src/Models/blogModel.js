@@ -13,7 +13,10 @@ const blogSchema = new mongoose.Schema({
     "authorid": {
         type: objectId, ref: "author"
     },
-    "tags": [String],
+    "tags": {
+        type:Array
+    },
+
     "category": {
         type: String,
         required: true

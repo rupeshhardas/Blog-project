@@ -24,7 +24,7 @@ const createblog = async function (req, res) {
         let authorId = blog.authorid
         let id = req.body.isPublished
 
-        const { title, body, authorid, tags, category, subcategory } = blog
+        const { title, body, authorid, tags, category, subcategory, } = blog
         const req0 = isValid(title)
         if (!req0) return res.status(400).send('title is require')
 
@@ -42,6 +42,9 @@ const createblog = async function (req, res) {
 
         const req5 = isValid(subcategory)
         if (!req5) return res.status(400).send('subcategory require')
+
+        
+
 
         if (id === true) {
             blog["publishedAt"] = new Date()
@@ -71,7 +74,7 @@ const getblog = async function (req, res) {
         const data = req.query
 
 
-        const blogs = await blogModel.find({ data, isPublished: true, deleted: false }).populate("authorid")
+        const blogs = await blogModel.find(data).find({  isPublished: true, deleted: false }).populate("authorid")
         if (blogs.length == 0) return res.status(404).send({ status: false, msg: "No blogs Available." })
         res.status(200).send({ status: true, data: blogs });
     }
@@ -133,21 +136,47 @@ const deleteblog = async function (req, res) {
 }
 
 
-const deleteByElement = async function (req, res) {
 
+
+const deleteByElement = async function (req, res) {
     try {
-        const data = req.query
+        let data = req.query
         if (Object.keys(data) == 0) return res.status(400).send({ status: false, msg: "not a vaild input" })
-        const deleteBYquery = await blogModel.find(data).updateMany({ deleted: true, deletedAt: new Date() }, { new: true })
+
+        let check = await blogModel.find(data)
+        if (!check) return res.status(404).send('Blog not exist')
+        console.log(check)
+
+        // let checking = check.isPublished
+        // if(checking == false) {
+
+        const deleteBYquery = await blogModel.updateMany({ $and: [data, { deleted: false }, { isPublished: false }] }, { $set: { deleted: true, deletedAt: new Date() } })
+        if (deleteBYquery.modifiedCount == 0) return res.status(400).send('user already deleted')
+
         if (!deleteBYquery) return res.status(404).send({ status: false, msg: "blog not exist" })
         res.status(200).send({ status: true, msg: deleteBYquery })
     }
+    //  else {
+    //      res.status(201).send('blog published')
+    //  }
+
 
 
     catch (error) {
         res.status(500).send({ status: false, msg: error.message });
     }
 };
+
+
+
+
+
+
+
+
+
+
+
 
 
 
